@@ -12,7 +12,7 @@ Contact Vanilla Forums Inc. at support [at] vanillaforums [dot] com
 $PluginInfo['Signatures'] = array(
    'Name' => 'Signatures',
    'Description' => 'This plugin allows users to attach their own signatures to their posts.',
-   'Version' => '1.1.5',
+   'Version' => '1.1.6.leb',
    'RequiredApplications' => FALSE,
    'RequiredTheme' => FALSE, 
    'RequiredPlugins' => FALSE,
@@ -122,6 +122,15 @@ class SignaturesPlugin extends Gdn_Plugin {
       } else {
          $Values = $Sender->Form->FormValues();
          $FrmValues = array_intersect_key($Values, $ConfigArray);
+         
+         if(array_key_exists('Plugin.Signatures.Sig', $FrmValues)) {
+             require_once('lib/HTMLPurifier.auto.php');
+             $config = HTMLPurifier_Config::createDefault();
+             $config->set('Cache', 'SerializerPath', PATH_CACHE .'/Signatures/html_purifier');
+             $purifier = new HTMLPurifier($config);
+             $FrmValues['Plugin.Signatures.Sig'] = $purifier->purify($FrmValues['Plugin.Signatures.Sig']);
+         }
+
          if (sizeof($FrmValues)) {
             foreach ($FrmValues as $UserMetaKey => $UserMetaValue) {
                $this->SetUserMeta($SigUserID, $this->TrimMetaKey($UserMetaKey), $UserMetaValue);
